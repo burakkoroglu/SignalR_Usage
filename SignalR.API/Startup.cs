@@ -21,14 +21,14 @@ namespace SignalR.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors(options =>
-           {
+            {
                options.AddPolicy("CorsPolicy", builder =>
                {
                    builder.WithOrigins("https://localhost:44381").AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod().AllowCredentials();
 
                });
-           });
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

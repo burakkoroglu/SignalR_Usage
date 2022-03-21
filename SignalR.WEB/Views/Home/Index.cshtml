@@ -3,30 +3,69 @@
 }
 
 @section Scripts{
-    <script> src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"</script>
-
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script type="text/javascript" >
-        
-        var connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:44383/MyHub").build();
-       
-        $('conStatus').text(connection.connectionState);
+        $(document).ready(() => {
+            var connection = new signalR.HubConnectionBuilder().configureLogging
+            (signalR.LogLevel.Information).withAutomaticReconnect([1000,1000,1000]).withUrl("https://localhost:5001/MyHub").build();
+            
+            start();
+            statusShow();
+            
+            //functions
+            function statusShow() {
+                $('#conStatus').text(connection.state);
+            }
 
-        connection.start().then(() =>{
-            $('conStatus').text(connection.connectionState);
-        }).catch((err) =>{console.log(err) });
+            function start() {
+                connection.start().then(() =>{
+                statusShow();
+                $("#loading").hide();
+                $("#connected").show();
+                }).catch((err) =>{
+                    console.log(err);
+                    setTimeout(() => start() ,2000)
+                    $("#connected").hide();
+                });
+            }
 
-        $("btnNameSave").click(() => {
 
-            connection.invoke("SendName",$('txtName').val()).catch(() => {
-                console.log(err);
-            });
 
-        connection.on("ReceiveNames" , (name) => {
+            connection.onreconnecting( err => {
+                $("#loading").show();
+                $("#connected").hide();
+                statusShow();
+                console.log("Hata(Onreconnection) : " + err);
+            })
 
+            connection.onreconnected(connectionId => {
+               $("#loading").hide();
+               $("#connected").show();
+               statusShow();
+               console.log("connectionId :" + connectionId);
+            })
+
+            connection.onclose(() => {
+                $("#loading").hide();
+               statusShow();
+               start();
+            })
+
+            //Clicks
+            $("#btnNameSave").click(() => {
+                connection.invoke("SendName" , $("#txtName").val()).catch((err) =>{console.log(err) });
+            })
+
+            
+            // on methods
+            connection.on("ReceiveMessage", (name) => {
+                $("#namesList").append(`<li class="list-group-item">${name}<li>`)
+                console.log(name)
+            })
+                
+           
         })
-            $('serverName').text(name);
-
-        });
+        
 
 
 
@@ -39,13 +78,27 @@
     <div class="col-md-8 offset-2">
         <input class="form-control" type="text" id ="txtName"/>
         <hr />
-        <button class="btn btn-dark" id="btnNameSave">İsim KAydet</button>
+        <button class="btn btn-dark" id="btnNameSave" style = "margin-bottom : 5px;">İsim Kaydet</button>
         <div class = "alert alert-info">
-            Bağlantı Durumu : <strong id="conStatus"></strong>
-        </div>
+            <div class ="float-left">
+                Bağlantı Durumu : <strong id="conStatus"></strong>
+            </div>
+            <div class ="float-right">
+                <div id="loading" class="spinner-grow text-success" role="status" >
+                  <span class="visually-hidden"></span>
+                </div>
+            </div>
+            <div class ="float-right" id="connected">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-bar-chart-steps text-success" viewBox="0 0 16 16">
+                    <path d="M.5 0a.5.5 0 0 1 .5.5v15a.5.5 0 0 1-1 0V.5A.5.5 0 0 1 .5 0zM2 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1z"/>
+                </svg>    
+            </div>
+            
 
-        <div class="alert alert-success">
-            Name : <strong id="serverName"></strong>
+            <div class="clearfix"></div>
         </div>
+    </div>
+    <div class="col-md-8 offset-2">
+        <ul id="namesList" class="list-group"></ul>
     </div>
 </div>

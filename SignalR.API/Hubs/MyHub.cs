@@ -8,7 +8,7 @@ namespace SignalR.API.Hubs
     {
         public static List<string> Names = new List<string>();
 
-        public async Task SendMessage(string name)
+        public async Task SendName(string name)
         {
             Names.Add(name);
             await Clients.All.SendAsync("ReceiveMessage", name);
