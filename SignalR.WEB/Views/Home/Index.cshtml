@@ -3,6 +3,7 @@
 }
 
 @section Scripts{
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script type="text/javascript" >
         $(document).ready(() => {
@@ -29,7 +30,7 @@
                 });
             }
 
-
+            statusShow();
 
             connection.onreconnecting( err => {
                 $("#loading").show();
@@ -46,9 +47,25 @@
             })
 
             connection.onclose(() => {
-                $("#loading").hide();
+               $("#loading").hide();
                statusShow();
                start();
+            })
+
+            connection.on("ReceiveClientCount" , (clientCount) => {
+                $("#conCount").text(clientCount);
+            })
+
+            connection.on("Notify" ,(countText) => {
+                Swal.fire({
+                  title: countText,
+                  showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                  },
+                  hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                  }
+                })
             })
 
             //Clicks
@@ -82,6 +99,7 @@
         <div class = "alert alert-info">
             <div class ="float-left">
                 Bağlantı Durumu : <strong id="conStatus"></strong>
+                , Client Sayısı :<strong id="conCount"></strong>
             </div>
             <div class ="float-right">
                 <div id="loading" class="spinner-grow text-success" role="status" >
