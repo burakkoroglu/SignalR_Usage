@@ -11,7 +11,7 @@ namespace SignalR.API.Controllers
     public class NotificationController : ControllerBase
     {
         private readonly IHubContext<MyHub> _hubContext;
-
+        
         public NotificationController(IHubContext<MyHub> hubContext)
         {
             _hubContext = hubContext;
@@ -20,6 +20,7 @@ namespace SignalR.API.Controllers
         [HttpGet("{teamCount}")]
         public async Task<IActionResult> setTeamCount(int teamCount)
         {
+            MyHub.TeamCount = teamCount;
             await _hubContext.Clients.All.SendAsync("Notify" , $"Takım {teamCount} kişi olacaktır.");
             return Ok();
         }

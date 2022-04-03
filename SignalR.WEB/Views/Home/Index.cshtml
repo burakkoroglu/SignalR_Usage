@@ -23,6 +23,8 @@
                 statusShow();
                 $("#loading").hide();
                 $("#connected").show();
+                connection.invoke("GetNames");
+
                 }).catch((err) =>{
                     console.log(err);
                     setTimeout(() => start() ,2000)
@@ -68,6 +70,25 @@
                 })
             })
 
+            connection.on("Error" , (errorText) => {
+                Swal.fire({
+                  title: errorText,
+                  showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                  },
+                  hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                  }
+                })
+            })
+
+            connection.on("ReceiveNames" , (names) => {
+                $("#namesList").empty();
+                names.forEach((item , index) => {
+                    $("#namesList").append(`<li class="list-group-item"> ${item} </li> `);
+                })
+            })
+
             //Clicks
             $("#btnNameSave").click(() => {
                 connection.invoke("SendName" , $("#txtName").val()).catch((err) =>{console.log(err) });
@@ -76,7 +97,7 @@
             
             // on methods
             connection.on("ReceiveMessage", (name) => {
-                $("#namesList").append(`<li class="list-group-item">${name}<li>`)
+                $("#namesList").append(`<li class="list-group-item"> ${name} </li> `)
                 console.log(name)
             })
                 
@@ -96,6 +117,7 @@
         <input class="form-control" type="text" id ="txtName"/>
         <hr />
         <button class="btn btn-dark" id="btnNameSave" style = "margin-bottom : 5px;">İsim Kaydet</button>
+        <button class="btn btn-warning" id="btnNameTeam" style = "margin-bottom : 5px;"> İsim Kaydet(Takım)</button>
         <div class = "alert alert-info">
             <div class ="float-left">
                 Bağlantı Durumu : <strong id="conStatus"></strong>
@@ -114,6 +136,18 @@
             
 
             <div class="clearfix"></div>
+        </div>
+    </div>
+    
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="TeamGroup" value="ATeam" />
+            <label class="form-check-inline">A Takımı</label>
+            <input class="form-check-input" type="radio" name="TeamGroup" value="BTeam" />
+            <label class="form-check-inline">B Takımı</label>
         </div>
     </div>
     <div class="col-md-8 offset-2">

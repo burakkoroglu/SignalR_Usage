@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using SignalR.API.Hubs;
+using SignalR.API.Models;
 
 namespace SignalR.API
 {
@@ -20,6 +22,10 @@ namespace SignalR.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("SignalRUsageDb"));
+            });
             services.AddCors(options =>
             {
                options.AddPolicy("CorsPolicy", builder =>
