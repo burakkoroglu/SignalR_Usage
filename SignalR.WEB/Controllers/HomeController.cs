@@ -23,6 +23,10 @@ namespace SignalR.WEB.Controllers
             return View();
         }
 
+        public IActionResult HubInMvc()
+        {
+            return View();
+        }
         public IActionResult Privacy()
         {
             return View();

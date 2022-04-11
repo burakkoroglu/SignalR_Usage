@@ -23,7 +23,8 @@
                 statusShow();
                 $("#loading").hide();
                 $("#connected").show();
-                connection.invoke("GetNames");
+                //connection.invoke("GetNames");
+                connection.invoke("GetNamesByGroup");
 
                 }).catch((err) =>{
                     console.log(err);
@@ -89,16 +90,85 @@
                 })
             })
 
+            connection.on("ReceiveMessage", (name) => {
+                $("#namesList").append(`<li class="list-group-item"> ${name} </li> `)
+                console.log(name)
+            })
+            
+            connection.on("ReceiveMessageByGroup", (name , teamId) => {
+                let listName = ""
+                console.log("teamID : " +String(teamId));
+                if(teamId == 1)
+                    listName = "ATeamList";
+                if(teamId == 2)
+                    listName = "BTeamList";
+                
+                $(`#${listName}`).append(`<li class="list-group-item">${name} </li>`)
+                 
+            })
+
+            connection.on("ReceiveNamesByGroup" , (teams) => {
+                console.log(teams);
+                teams.forEach((team , index) => {
+
+                    let listName = "";
+                    if(team.teamId == 1)
+                        listName = "ATeamList";
+                    if(team.teamId == 2)
+                        listName = "BTeamList";
+                    team.users.forEach( (user , index2) => {
+            
+                        $(`#${listName}`).append(`<li class="list-group-item">${user.name} </li>`)
+                    });
+                });
+            });
+
+            connection.on("ReceiveProduct" , (product) => {
+                console.log(product);
+            });
+
+
             //Clicks
             $("#btnNameSave").click(() => {
                 connection.invoke("SendName" , $("#txtName").val()).catch((err) =>{console.log(err) });
             })
 
-            
-            // on methods
-            connection.on("ReceiveMessage", (name) => {
-                $("#namesList").append(`<li class="list-group-item"> ${name} </li> `)
-                console.log(name)
+            $("#btnNameTeam").click(() => {
+                let name = $("#txtName").val();
+                let teamName = $('input[type=radio]:checked').val();
+                if(teamName == null){
+                    Swal.fire({
+                  title: "Lütfen Takım seçiniz.",
+                  showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                  },
+                  hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                  }
+                })
+                }
+        
+                connection.invoke("SendNameByGroup" ,name ,teamName).then(console.log(name + teamName)).catch((err) => {
+                    console.log(err);
+                });
+            })
+
+            $('input[type=radio]').change( () => {
+                let value = $(`input[type=radio]:checked`).val();
+                console.log("value : " +value);
+                if (value == "Team A"){
+                    connection.invoke("AddToGroup", value);
+                    connection.invoke("RemoveToGroup", "Team B");
+                }
+                else {
+                    connection.invoke("AddToGroup", value);
+                    connection.invoke("RemoveToGroup", "Team A");
+                }
+             })
+
+            $('#btnProduct').click(() => {
+                let product = { "id" : 1 , "Name":"Kalem" , "Price" :100 , "Stock" : 200};
+                connection.invoke("SendProduct" , product);
             })
                 
            
@@ -118,6 +188,7 @@
         <hr />
         <button class="btn btn-dark" id="btnNameSave" style = "margin-bottom : 5px;">İsim Kaydet</button>
         <button class="btn btn-warning" id="btnNameTeam" style = "margin-bottom : 5px;"> İsim Kaydet(Takım)</button>
+        <button class="btn btn-danger" id="btnProduct"> Ürün Gönder</button> 
         <div class = "alert alert-info">
             <div class ="float-left">
                 Bağlantı Durumu : <strong id="conStatus"></strong>
@@ -144,13 +215,25 @@
 <div class="row">
     <div class="col-md-8 offset-2">
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="TeamGroup" value="ATeam" />
-            <label class="form-check-inline">A Takımı</label>
-            <input class="form-check-input" type="radio" name="TeamGroup" value="BTeam" />
-            <label class="form-check-inline">B Takımı</label>
+            <input class="form-check-input" type="radio" name="TeamGroup" value="Team A" />
+            <label class="form-check-label">A Takımı</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="TeamGroup" value="Team B" />
+            <label class="form-check-label">B Takımı</label>
         </div>
     </div>
     <div class="col-md-8 offset-2">
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="text-danger text-center" name="teamHeader" >TEAM A</h4>
+                <ul class = "list-group" id ="ATeamList"></ul>
+            </div>
+            <div class="col-md-6">
+                <h4 class="text-danger text-center" name="teamHeader" >TEAM B</h4>
+                <ul class = "list-group" id ="BTeamList"></ul>
+            </div>
+        </div>
         <ul id="namesList" class="list-group"></ul>
     </div>
 </div>

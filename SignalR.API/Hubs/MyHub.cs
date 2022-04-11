@@ -36,6 +36,11 @@ namespace SignalR.API.Hubs
             
         }
 
+        public async Task SendProduct(Product product)
+        {
+            await Clients.All.SendAsync("ReceiveProduct" , product);
+        }
+
 
         public async Task GetNames()
         {
@@ -67,14 +72,14 @@ namespace SignalR.API.Hubs
                 _context.Teams.Add(newTeam);
             }
             await _context.SaveChangesAsync();
-            await Clients.Group(teamName).SendAsync("ReceiveMessageByGroup", name , teamName);
+            await Clients.Group(teamName).SendAsync("ReceiveMessageByGroup", name , team.Id);
         }
 
         public async Task GetNamesByGroup()
         {
             var teams = _context.Teams.Include(x => x.Users).Select(x => new
             {
-                TeamName = x.Name,
+                TeamId = x.Id,
                 Users = x.Users.ToList()
             });
             await Clients.All.SendAsync("ReceiveNamesByGroup", teams);
@@ -100,3 +105,7 @@ namespace SignalR.API.Hubs
 
     }
 }
+
+
+
+mal
